@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const { v4: uuid } = require('uuid');
+const PostAccessor = require('./database/blogpost.model');
 
 const postDB = [
     {
@@ -36,52 +38,57 @@ function generateTimestamp() {
 }
 
 // return all post
-router.get('/', function(req, res) {
-
-    res.json(postDB);
+router.get('/', async function(req, res) {
+    const foundPost = await PostAccessor.getAllBlogPosts();
+    return res.json(foundPost);
 });
 
 //api/post/all?owner=Boris
 //api/post/all
 router.get('/all', async function(req, res) {
 
-    const ownerQuery = req.query.owner;
-    let postResponse = postDB;
+    
+    const username = req.cookies['username'];
 
-//     const allPokemon = await PokemonAccessor.getAllPokemon();
-//    return  response.json(allPokemon);
+    if(username) {
+        const foundPost = await PostAccessor.findPostByOwner(username);
+        return res.json(foundPost);
+    } else {
+        const foundPost = await PostAccessor.getAllBlogPosts();
+        return res.json(foundPost);
+    }
  
-    if(ownerQuery) {
-        const response = [];
+    // if(ownerQuery) {
+    //     const response = [];
 
-        for(let i = 0; i < postResponse.length; i++) {
-            const postValue = postResponse[i];
-            if(postValue.owner.toLocaleLowerCase() === ownerQuery.toLocaleLowerCase()) {
-                response.push(postValue)
-            }
-        }
-        postResponse = response;
-    }
-    if(postResponse.length == 0) {
-        return res.status(404).json({ error: "No such User!"});
-    }
-    res.json(postResponse);
+    //     for(let i = 0; i < postResponse.length; i++) {
+    //         const postValue = postResponse[i];
+    //         if(postValue.owner === ownerQuery) {
+    //             response.push(postValue)
+    //         }
+    //     }
+    //     postResponse = response;
+    // }
+    // if(postResponse.length == 0) {
+    //     return res.status(404).json({ error: "No such User!"});
+    // }
+    // res.json(postResponse);
 })
 
-////api/post/1
-router.get('/:postId', function (req, res) {
-    // return pokemon if one is found matching the pokemonId
-    // return a 404 if no pokemon matches that pokemonId
-    const idQuery = Number(req.params.postId);
+// ////api/post/1
+// router.get('/:postId', function (req, res) {
+//     // return pokemon if one is found matching the pokemonId
+//     // return a 404 if no pokemon matches that pokemonId
+//     const idQuery = Number(req.params.postId);
 
-    for (let i = 0; i < postDB.length; i++) {
-        const postValue = postDB[i];
-        if (postValue.id === idQuery) {
-            return res.json(postValue);
-        }
-    }
-    res.status(404).json({ error: "No post matches that post id!"});
-});
+//     for (let i = 0; i < postDB.length; i++) {
+//         const postValue = postDB[i];
+//         if (postValue.id === idQuery) {
+//             return res.json(postValue);
+//         }
+//     }
+//     res.status(404).json({ error: "No post matches that post id!"});
+// });
 
 //http://localhost:3500/api/post/
 //Headers:Content-Type application/json
@@ -89,39 +96,45 @@ router.get('/:postId', function (req, res) {
 //name , ... (use cookie username later....)
 //image , ....
 router.post('/', async function(req, res) {
-    // const username = req.cookies.username
     
-    // if(!username) {
-    //     response.status(400)
-    //     return response.send("Users need to be logged in to create a new post!")
-    // }
+    // document.cookie = `username=Boris; path=/`;
+
+
+    const username = req.cookies['username'];
+    console.log("username: " + username)
+    if(!username) {
+        res.status(400)
+        return res.send("username:" + username)
+        //return res.send("Users need to be logged in to create a new post!")
+    }
 
     const body = req.body;
     const postText = body.text;
-    const owner = body.owner;
+    const owner = username
     const image = body.image
-    const postId = postDB.length + 1;
+    const postId = uuid();
 
-    if(!postText || !owner) {
+    if(!postText) {
         res.status(400);
-        return res.send("Missing post text or owner!")
+        return res.send("Missing post text")
     }
 
-    const newPost = ({
+    const newPost = {
         id: postId,
         owner: owner,
         text: postText,
         timestamp: generateTimestamp()
-    });
+    };
 
     if(image) {
         newPost.image = image;
     }
 
-    postDB.push(newPost)
+    const createPost = await PostAccessor.insertBlogPost(newPost);
 
-    return res.status(200).json({message: "Post added successfully!", post: newPost, });
+    return res.status(200).json({ createPost });
 });
+
 
 
 //http://localhost:3500/api/1

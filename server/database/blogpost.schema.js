@@ -1,13 +1,14 @@
 const Schema = require('mongoose').Schema;
 
 exports.BlogpostSchema = new Schema({
-    username: {
+    owner: {
         type: String,
         unique: true
     },
-    content: String,
-    createdTime: {
+    text: String,
+    timestamp: {
         type: Date,
         default: Date.now,
     },
-}, { collection : 'userTable' });
+}, { collection : 'postTable' });
+

@@ -6,16 +6,21 @@ const BlogpostModel = mongoose.model("BlogpostSchema", BlogpostSchema);
 
 function insertBlogPost(post) 
 {
-    return BlogPostModel.create(post);
+    return BlogpostModel.create(post);
 }
 
 function getAllBlogPosts() 
 {
-    return BlogPostModel.find().exec();
+    return BlogpostModel.find().exec();
+}
+
+function findPostByOwner(owner) {
+    return BlogpostModel.find({owner: owner}).exec();
 }
 
 module.exports = 
 {
     insertBlogPost,
     getAllBlogPosts,
+    findPostByOwner
 };

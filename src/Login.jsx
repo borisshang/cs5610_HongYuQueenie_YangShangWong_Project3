@@ -39,7 +39,7 @@ export default function Login() {
 
             navigate(`/${loginFormState.username}`)  
         } catch (err) {
-            setErrorDetailsState("Issue logging in, please try again :)")
+            setErrorDetailsState("Please enter a valid username or password!")
         }
 
 

@@ -4,7 +4,7 @@ const postApi = require('./server/post.server');
 const cors = require('cors')
 
 //const path = require('path')
-//const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser')
 
 /* User Server Stuff */
 const userApi = require('./server/user.server');
@@ -14,7 +14,7 @@ const app = express();
 app.use(cors())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-//app.use(cookieParser());
+app.use(cookieParser());
 
 /* MongoDB Stuff */
 const mongoose = require('mongoose');
